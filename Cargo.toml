@@ -1,0 +1,11 @@
+[package]
+name = "lint_scount"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ignore = "0.4.20"
+regex = "1.9.5"
+walkdir = "2.4.0"
