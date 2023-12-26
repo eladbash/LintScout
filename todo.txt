@@ -2,3 +2,4 @@
 2. Go over all the code again and make sure it makes sense
 3. Refactor the scout to get &str instead of a line and return the match itself with the line - this way we can test it with no fs
 4. Walk performance - Fix walk ignores, and see how can we perform walk better
+5. Remove this line
