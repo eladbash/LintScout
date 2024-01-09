@@ -1,4 +1,5 @@
 # LintScout
+
 [default]
 aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
