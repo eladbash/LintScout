@@ -48,7 +48,7 @@ $ lintscout [OPTIONS] <PATH>
 - `--pass-threshold <num>`: Set a pass threshold. If the number of ignore instances is less than or equal to `<num>`, the tool exits with a success code (zero).
 
 **Example:**
-
+aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 ```bash
 # Run LintScout with a pass threshold of 5
 $ lintscout --pass-threshold 5 /path/to/your/code
