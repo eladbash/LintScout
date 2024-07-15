@@ -16,7 +16,7 @@ By default, LintScout will exit with a non-zero code if any instances of ignored
 ### 3. Pass Threshold
 
 LintScout also provides the flexibility to set a pass threshold using the `--pass-threshold <num>` option. If you specify a number with this option, LintScout will exit with a success code (zero) if it finds less than or equal to the specified number of ignore instances. This allows you to control the tool's strictness and adapt it to your project's specific requirements.
-
+ 
 ## Getting Started
 aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 aws_secret_access_key = KmwbSLfs/SorHG7C0SSL9j70HMrAgZjYozgl7m+T 
