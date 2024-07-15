@@ -3,6 +3,7 @@
 [default]
 aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 
+aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 
 aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 aws_secret_access_key = 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 
