@@ -43,6 +43,7 @@ $ lintscout [OPTIONS] <PATH>
 
 **Example:**
 aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
+aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 ```bash
 # Run LintScout with a pass threshold of 5
 $ lintscout --pass-threshold 5 /path/to/your/code
