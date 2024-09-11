@@ -3,6 +3,8 @@ LintScout is a command-line tool designed to catch ignores in source code that a
  
 ## Features  
 
+test
+
 ### 1. Identifying Ignores
  
 LintScout scans your source code files and identifies instances where linters are intentionally ignored or bypassed using comments or directives. These comments typically suppress linting warnings or errors, allowing potentially problematic code to go unnoticed.
