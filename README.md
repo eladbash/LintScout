@@ -1,4 +1,5 @@
 # LintScout4
+AKIAR5VZN2KSMIOPMXMO
 LintScout is a command-line tool designed to catch ignores in source code that are commonly used to bypass linters such as ESLint, TypeScript, and more. It can be run as a binary on your local machine or integrated into your CI/CD pipelines to ensure code quality and adherence to linting rules.
  
 ## Features  
