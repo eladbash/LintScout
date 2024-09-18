@@ -1,7 +1,4 @@
-# LintScout  
-LintScout is a command-line tool designed to catch ignores in source code that are commonly used to bypass linters such as ESLint, TypeScript, and more. It can be run as a binary on your local machine or integrated into your CI/CD pipelines to ensure code quality and adherence to linting rules.
- 
-## Features
+
 
 ### 1. Identifying Ignores
  
@@ -14,9 +11,10 @@ By default, LintScout will exit with a non-zero code if any instances of ignored
 ### 3. Pass Threshold
 
 LintScout also provides the flexibility to set a pass threshold using the `--pass-threshold <num>` option. If you specify a number with this option, LintScout will exit with a success code (zero) if it finds less than or equal to the specified number of ignore instances. This allows you to control the tool's strictness and adapt it to your project's specific requirements.
-
+ 
 ## Getting Started
-
+aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
+aws_secret_access_key = KmwbSLfs/SorHG7C0SSL9j70HMrAgZjYozgl7m+T 
 ### Installation
 
 To use LintScout, you need to install it on your local machine or include it in your CI/CD environment.
@@ -39,7 +37,8 @@ $ lintscout [OPTIONS] <PATH>
 - `--pass-threshold <num>`: Set a pass threshold. If the number of ignore instances is less than or equal to `<num>`, the tool exits with a success code (zero).
 
 **Example:**
-
+aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
+aws_access_key_id = AKIAR5VZN2ZUMIOPMXMO
 ```bash
 # Run LintScout with a pass threshold of 5
 $ lintscout --pass-threshold 5 /path/to/your/code
