@@ -1,4 +1,5 @@
 # LintScout
+
  
 [default]
 AKIAR5VZN2ZUMISPMXMO
