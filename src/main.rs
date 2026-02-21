@@ -1,52 +1,118 @@
-use std::time::Instant;
+use std::process;
 
-use lint_scount::{scanner::scanner::Scanner, scouts::nodejs};
+use clap::Parser;
+
+use lintscout::cli::Cli;
+use lintscout::config::Config;
+use lintscout::output;
+use lintscout::registry::ScoutRegistry;
+use lintscout::scanner::Scanner;
 
 fn main() {
-    //We have matchers {targets_extensions: Vec[string], patterns: Vec<string>, name: String}
-    //We want to get a command like `lintscout --path path/root --matchers=*/m1,m2` and scan recursivelty all the files in this path
-    //For each file - we want to run a set of rules (matchers patterns) to find lines where might contain an ignore. the matcher must match in the pattern + file extension
-    //We would like to show list of files, with lines and the kind of matcher
-    println!("Let's catch those lint ignores 👁️‍🗨️");
-    let scouts = vec![nodejs::eslint::new(), nodejs::typescript::new()];
-    let scouts_names: Vec<String> = scouts.iter().map(|s| s.name()).collect();
-    let root_path = String::from("./");
-    let scanner = Scanner::new(&root_path, &scouts);
+    let cli = Cli::parse();
 
-    println!(
-        "Performing scan on '{}' with scouts [{}]",
-        root_path,
-        scouts_names.join(",")
-    );
-    let start_time = Instant::now();
-
-    let (findings, stats) = scanner.run();
-
-    if !findings.is_empty() {
-        for result in findings.iter() {
-            println!("{:#?}", result)
-        }
-
-        let scanned_files = stats.get_files_scanned();
-        let findings_count = stats.get_findings_count();
-        println!(
-            "Stats: \n - files scanned:{} \n - findings:{} ",
-            scanned_files.to_string(),
-            findings_count.to_string()
-        );
-        for scout_stat in &scouts {
-            let count = findings
-                .iter()
-                .filter(|f| f.scout_name == scout_stat.name())
-                .count();
-            println!("{} - {}", scout_stat.name(), count);
+    let config = if let Some(ref path) = cli.config {
+        match Config::load(path) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("Error loading config: {e}");
+                process::exit(2);
+            }
         }
     } else {
-        println!("🔍 Scan complete and all clear! Great job! 👍")
+        match Config::find_and_load() {
+            Some(Ok(c)) => c,
+            Some(Err(e)) => {
+                eprintln!("Error loading config: {e}");
+                process::exit(2);
+            }
+            None => Config::default(),
+        }
+    };
+
+    let format = if cli.format != "text" {
+        cli.format.clone()
+    } else {
+        config.settings.output.clone()
+    };
+
+    let pass_threshold = cli.pass_threshold.or(config.settings.pass_threshold);
+
+    let excludes = cli
+        .exclude
+        .clone()
+        .unwrap_or_else(|| config.settings.exclude.clone());
+
+    let respect_gitignore = !cli.no_gitignore && config.settings.respect_gitignore;
+
+    let registry = match ScoutRegistry::new().with_builtins() {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Error initializing scouts: {e}");
+            process::exit(2);
+        }
+    };
+
+    let registry = match registry.with_config(&config) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Error loading custom scouts: {e}");
+            process::exit(2);
+        }
+    };
+
+    let mut exclude_scouts = config.settings.disable.scouts.clone();
+    if let Some(ref cli_excludes) = cli.exclude_scouts {
+        exclude_scouts.extend(cli_excludes.iter().cloned());
     }
 
-    let end_time = Instant::now();
-    let elapsed_time = end_time - start_time;
-    println!("Execution time: {:.2} seconds", elapsed_time.as_secs_f64());
-    println!("Execution time: {} milliseconds", elapsed_time.as_millis());
+    let registry = if let Some(ref names) = cli.scouts {
+        registry.filter(names)
+    } else {
+        registry
+    };
+
+    let scouts = registry.exclude(&exclude_scouts).into_scouts();
+
+    if scouts.is_empty() {
+        if !cli.quiet {
+            eprintln!("No scouts selected. Check your --scouts or --exclude-scouts flags.");
+        }
+        process::exit(0);
+    }
+
+    let scanner = Scanner::new(&cli.path, scouts)
+        .with_excludes(excludes)
+        .with_gitignore(respect_gitignore);
+
+    let result = match scanner.run() {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Scan error: {e}");
+            process::exit(2);
+        }
+    };
+
+    if !cli.quiet || !result.findings.is_empty() {
+        print!("{}", output::format_output(&result, &format));
+    }
+
+    let exit_code = match pass_threshold {
+        Some(threshold) => {
+            if result.stats.findings_count > threshold {
+                1
+            } else {
+                0
+            }
+        }
+        None => {
+            if result.stats.findings_count > 0 {
+                1
+            } else {
+                0
+            }
+        }
+    };
+
+    process::exit(exit_code);
 }

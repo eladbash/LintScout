@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LintScout - Find every linter ignore directive in your codebase</title>
+  <meta name="description" content="LintScout is a blazing-fast CLI tool that detects linter ignore directives across 12+ languages. Built in Rust.">
+  <meta property="og:title" content="LintScout">
+  <meta property="og:description" content="Find every linter ignore directive hiding in your codebase.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo">🔍</span>
+        <span class="nav-name">LintScout</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#languages">Languages</a>
+        <a href="#usage">Usage</a>
+        <a href="https://github.com/eladbash/LintScout" class="btn btn-sm" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Built with Rust &middot; 22 linters &middot; 12 languages</div>
+      <h1 class="hero-title">
+        Find every linter ignore<br>directive in your codebase
+      </h1>
+      <p class="hero-subtitle">
+        <code>eslint-disable</code>, <code>@ts-ignore</code>, <code># noqa</code>, <code>NOLINT</code> &mdash;
+        LintScout catches them all. Audit suppressed warnings, gate your CI pipeline, and keep your tech debt visible.
+      </p>
+      <div class="hero-actions">
+        <a href="#install" class="btn btn-primary btn-lg">Get Started</a>
+        <a href="https://github.com/eladbash/LintScout" class="btn btn-outline btn-lg" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+
+      <!-- Terminal demo -->
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">Terminal</span>
+        </div>
+        <div class="terminal-body">
+<pre><span class="t-prompt">$</span> <span class="t-cmd">lintscout src/</span>
+
+<span class="t-path">src/api/handler.ts</span>:<span class="t-line">42</span> <span class="t-tag">[eslint:eslint-disable-next-line]</span> <span class="t-desc">ESLint disable next line</span>
+    <span class="t-code">// eslint-disable-next-line @typescript-eslint/no-explicit-any</span>
+<span class="t-path">src/api/handler.ts</span>:<span class="t-line">88</span> <span class="t-tag">[typescript:ts-ignore]</span> <span class="t-desc">TypeScript ignore directive</span>
+    <span class="t-code">// @ts-ignore</span>
+<span class="t-path">src/utils/legacy.py</span>:<span class="t-line">12</span> <span class="t-tag">[flake8:noqa]</span> <span class="t-desc">Flake8 noqa directive</span>
+    <span class="t-code">import os  # noqa</span>
+<span class="t-path">src/models/user.go</span>:<span class="t-line">55</span> <span class="t-tag">[golangci-lint:nolint]</span> <span class="t-desc">golangci-lint nolint directive</span>
+    <span class="t-code">err := doThing() //nolint:errcheck</span>
+
+<span class="t-stats">Files walked: 1,204, scanned: 438, skipped: 766</span>
+<span class="t-stats">Findings: 4</span>
+<span class="t-stats">Duration: 28ms</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="section">
+    <div class="container">
+      <h2 class="section-title">Why LintScout?</h2>
+      <p class="section-subtitle">Linters exist for a reason. Every ignore directive is a decision to bypass a safety net. LintScout makes those decisions visible.</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="card-icon">&#9889;</div>
+          <h3>Blazing Fast</h3>
+          <p>Built in Rust using the same filesystem engine as ripgrep. Scans 10,000+ files in under 100ms.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128736;</div>
+          <h3>22 Built-in Scouts</h3>
+          <p>Covers ESLint, TypeScript, Pylint, Flake8, golangci-lint, Clang-Tidy, RuboCop, ShellCheck, and 14 more out of the box.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128295;</div>
+          <h3>Fully Configurable</h3>
+          <p>YAML config for excludes, thresholds, scout selection, and custom regex-based rules. CLI flags override everything.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128640;</div>
+          <h3>CI/CD Ready</h3>
+          <p>Exit codes, pass thresholds, and quiet mode make it trivial to add to GitHub Actions, GitLab CI, or any pipeline.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#128202;</div>
+          <h3>JSON Output</h3>
+          <p>Machine-readable output for dashboards, trend tracking, and integration with your existing toolchain.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">&#127760;</div>
+          <h3>12 Language Ecosystems</h3>
+          <p>JavaScript, TypeScript, Python, Go, Java, Kotlin, Ruby, C/C++, CSS, Shell, Dockerfile, and Swift.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Languages -->
+  <section id="languages" class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">Every linter. Every language.</h2>
+      <p class="section-subtitle">One tool to scan them all.</p>
+      <div class="lang-grid">
+        <div class="lang-group">
+          <h4>JavaScript / TypeScript</h4>
+          <div class="lang-tags">
+            <span class="tag">ESLint</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">Biome</span>
+            <span class="tag">Prettier</span>
+            <span class="tag">JSHint</span>
+          </div>
+        </div>
+        <div class="lang-group">
+          <h4>Python</h4>
+          <div class="lang-tags">
+            <span class="tag">Pylint</span>
+            <span class="tag">Flake8</span>
+            <span class="tag">Mypy</span>
+            <span class="tag">Pyright</span>
+            <span class="tag">Bandit</span>
+          </div>
+        </div>
+        <div class="lang-group">
+          <h4>Go</h4>
+          <div class="lang-tags">
+            <span class="tag">golangci-lint</span>
+            <span class="tag">gosec</span>
+            <span class="tag">staticcheck</span>
+          </div>
+        </div>
+        <div class="lang-group">
+          <h4>Java / Kotlin</h4>
+          <div class="lang-tags">
+            <span class="tag">SuppressWarnings</span>
+            <span class="tag">Checkstyle</span>
+            <span class="tag">PMD</span>
+            <span class="tag">SpotBugs</span>
+            <span class="tag">Detekt</span>
+          </div>
+        </div>
+        <div class="lang-group">
+          <h4>C / C++</h4>
+          <div class="lang-tags">
+            <span class="tag">clang-tidy</span>
+            <span class="tag">cppcheck</span>
+          </div>
+        </div>
+        <div class="lang-group">
+          <h4>More</h4>
+          <div class="lang-tags">
+            <span class="tag">RuboCop</span>
+            <span class="tag">Stylelint</span>
+            <span class="tag">ShellCheck</span>
+            <span class="tag">Hadolint</span>
+            <span class="tag">SwiftLint</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install + Usage -->
+  <section id="install" class="section">
+    <div class="container">
+      <h2 class="section-title">Get started in 30 seconds</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Install</h3>
+            <div class="code-block">
+              <code>cargo install lintscout</code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Run</h3>
+            <div class="code-block">
+              <code>lintscout .</code>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Add to CI (optional)</h3>
+            <div class="code-block">
+              <code>lintscout --pass-threshold 0 --format json .</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Usage Examples -->
+  <section id="usage" class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">Flexible by design</h2>
+      <p class="section-subtitle">Filter scouts, set thresholds, export JSON, define custom rules.</p>
+      <div class="grid grid-2">
+        <div class="example">
+          <h4>Filter by language</h4>
+          <div class="code-block"><code>lintscout --scouts pylint,flake8,mypy,bandit src/</code></div>
+        </div>
+        <div class="example">
+          <h4>JSON for dashboards</h4>
+          <div class="code-block"><code>lintscout --format json | jq '.stats.findings_count'</code></div>
+        </div>
+        <div class="example">
+          <h4>CI gate</h4>
+          <div class="code-block"><code>lintscout --pass-threshold 0 --quiet .</code></div>
+        </div>
+        <div class="example">
+          <h4>Custom config</h4>
+          <div class="code-block"><code>lintscout --config .lintscout.yml src/</code></div>
+        </div>
+      </div>
+
+      <div class="config-example">
+        <h4>Example <code>.lintscout.yml</code></h4>
+        <div class="code-block code-block-lg">
+<pre><span class="y-key">settings</span>:
+  <span class="y-key">exclude</span>: [node_modules, vendor, dist]
+  <span class="y-key">pass_threshold</span>: <span class="y-val">10</span>
+  <span class="y-key">output</span>: <span class="y-val">text</span>
+  <span class="y-key">disable</span>:
+    <span class="y-key">scouts</span>: [jshint, prettier]
+
+<span class="y-key">scouts</span>:
+  - <span class="y-key">name</span>: <span class="y-val">todo-fixme</span>
+    <span class="y-key">extensions</span>: [js, ts, py, go]
+    <span class="y-key">rules</span>:
+      - <span class="y-key">id</span>: <span class="y-val">todo</span>
+        <span class="y-key">pattern</span>: <span class="y-str">"TODO|FIXME|HACK"</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section cta">
+    <div class="container">
+      <h2 class="section-title">Keep your codebase honest</h2>
+      <p class="section-subtitle">Stop letting lint ignores pile up silently. Start scanning today.</p>
+      <div class="hero-actions">
+        <a href="https://github.com/eladbash/LintScout" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 8px; vertical-align: -3px;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub
+        </a>
+        <div class="code-block code-inline">
+          <code>cargo install lintscout</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p>MIT License &middot; Copyright &copy; 2023 Elad Ben Shmuel</p>
+      <div class="footer-links">
+        <a href="https://github.com/eladbash/LintScout">GitHub</a>
+        <a href="https://crates.io/crates/lintscout">crates.io</a>
+        <a href="https://github.com/eladbash/LintScout/blob/main/CONTRIBUTING.md">Contributing</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

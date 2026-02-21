@@ -1,0 +1,13 @@
+settings:
+  output: text
+  pass_threshold: 100
+
+scouts:
+  - name: custom-test
+    linter: custom
+    language: javascript
+    extensions: [js]
+    rules:
+      - id: no-console-log
+        description: "Detects console.log statements"
+        pattern: "console\\.log"

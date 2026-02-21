@@ -1,3 +1,11 @@
-pub mod matching;
+pub mod builtin;
+pub mod cli;
+pub mod config;
+pub mod error;
+pub mod finding;
+pub mod output;
+pub mod registry;
+pub mod rule;
 pub mod scanner;
-pub mod scouts;
+pub mod scout;
+pub mod stats;

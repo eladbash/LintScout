@@ -1,0 +1,5 @@
+/* stylelint-disable color-named */
+a { color: red; }
+/* stylelint-enable color-named */
+/* prettier-ignore */
+.ugly    {   margin:  0   }

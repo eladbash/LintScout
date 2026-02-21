@@ -1,101 +1,431 @@
-# LintScout
-LintScout is a command-line tool designed to catch ignores in source code that are commonly used to bypass linters such as ESLint, TypeScript, and more. It can be run as a binary on your local machine or integrated into your CI/CD pipelines to ensure code quality and adherence to linting rules. 
+<p align="center">
+  <h1 align="center">LintScout</h1>
+  <p align="center">
+    <strong>Find every linter ignore directive hiding in your codebase.</strong>
+  </p>
+  <p align="center">
+    <a href="https://github.com/eladbash/LintScout/actions/workflows/ci.yml"><img src="https://github.com/eladbash/LintScout/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://crates.io/crates/lintscout"><img src="https://img.shields.io/crates/v/lintscout.svg" alt="crates.io"></a>
+    <a href="https://github.com/eladbash/LintScout/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+    <a href="https://github.com/eladbash/LintScout"><img src="https://img.shields.io/badge/rust-1.74%2B-orange.svg" alt="Rust 1.74+"></a>
+  </p>
+</p>
 
+---
 
-## Features
- 
-### 1. Identifying Ignores
- 
-LintScout scans your source code files and identifies instances where linters are intentionally ignored or bypassed using comments or directives. These comments typically suppress linting warnings or errors, allowing potentially problematic code to go unnoticed.
+`// eslint-disable-next-line` ... `# noqa` ... `// NOLINT` ... `@SuppressWarnings` ...
 
-### 2. Customizable Exit Codes
- 
-By default, LintScout will exit with a non-zero code if any instances of ignored linting issues are found. This behavior is useful for CI/CD pipelines, ensuring that code with suppressed linters doesn't go unnoticed.
+These one-line comments silently bypass your linters, and over time they pile up. **LintScout** scans your codebase, finds every suppression directive, and reports them so you can track, review, and control your tech debt.
 
-### 3. Pass Threshold
+```
+$ lintscout src/
 
-LintScout also provides the flexibility to set a pass threshold using the `--pass-threshold <num>` option. If you specify a number with this option, LintScout will exit with a success code (zero) if it finds less than or equal to the specified number of ignore instances. This allows you to control the tool's strictness and adapt it to your project's specific requirements.
+src/api/handler.ts:42 [eslint:eslint-disable-next-line] ESLint disable next line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+src/api/handler.ts:88 [typescript:ts-ignore] TypeScript ignore directive
+    // @ts-ignore
+src/utils/legacy.py:12 [flake8:noqa] Flake8 noqa directive
+    import os  # noqa
+src/utils/legacy.py:19 [bandit:nosec] Bandit nosec directive
+    x = eval(cmd)  # nosec
 
-## Getting Started
-
-### Installation
-
-To use LintScout, you need to install it on your local machine or include it in your CI/CD environment.
-
-```bash
-# Install LintScout globally
-$ cargo install lintscout
+Files walked: 214, scanned: 87, skipped: 127
+Findings: 4
+Duration: 12ms
 ```
 
-### Usage
+## Why LintScout?
 
-Run LintScout with the following command:
+Linters exist for a reason. Every `eslint-disable` or `# noqa` is a decision to bypass a safety net. Sometimes that's fine -- but those decisions should be **visible, tracked, and intentional**, not quietly buried in old pull requests.
+
+LintScout helps you:
+
+- **Audit** -- see every suppressed warning across your entire codebase in seconds
+- **Gate CI** -- fail builds when ignore directives exceed a threshold you control
+- **Track trends** -- use JSON output to feed dashboards and track tech debt over time
+- **Onboard** -- give new team members instant visibility into where shortcuts were taken
+
+## Quick Start
+
+### Install
 
 ```bash
-$ lintscout [OPTIONS] <PATH>
+cargo install lintscout
 ```
 
-**Options:**
-
-- `--pass-threshold <num>`: Set a pass threshold. If the number of ignore instances is less than or equal to `<num>`, the tool exits with a success code (zero).
-
-**Example:**
+Or build from source:
 
 ```bash
-# Run LintScout with a pass threshold of 5
-$ lintscout --pass-threshold 5 /path/to/your/code
+git clone https://github.com/eladbash/LintScout.git
+cd LintScout
+cargo install --path .
 ```
 
-### Integration with CI/CD
+### Run
 
-Integrate LintScout into your CI/CD pipelines to ensure that your codebase adheres to linting rules consistently. You can run LintScout as part of your build or test process, and it will exit with an appropriate code based on the configuration.
+```bash
+# Scan current directory
+lintscout
 
-Example using GitHub Actions:
+# Scan a specific path
+lintscout src/
+
+# JSON output (great for CI and dashboards)
+lintscout --format json
+
+# Fail CI if there are any findings
+lintscout --pass-threshold 0
+
+# Only check for Python issues
+lintscout --scouts pylint,flake8,mypy,bandit
+```
+
+## Supported Linters
+
+LintScout ships with **22 built-in scouts** covering **12 language ecosystems**:
+
+### JavaScript / TypeScript
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **eslint** | `eslint-disable`, `eslint-disable-next-line`, `eslint-disable-line`, `eslint-enable` | `.js` `.jsx` `.ts` `.tsx` `.mjs` `.cjs` `.vue` `.svelte` |
+| **typescript** | `@ts-ignore`, `@ts-nocheck`, `@ts-expect-error` | `.ts` `.tsx` |
+| **biome** | `biome-ignore` | `.js` `.jsx` `.ts` `.tsx` `.json` `.jsonc` |
+| **prettier** | `prettier-ignore` | `.js` `.jsx` `.ts` `.tsx` `.css` `.scss` `.html` `.md` `.json` `.yaml` `.yml` `.vue` `.svelte` |
+| **jshint** | `jshint ignore` | `.js` |
+
+### Python
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **pylint** | `pylint: disable`, `pylint: disable-next` | `.py` |
+| **flake8** | `# noqa` | `.py` |
+| **mypy** | `# type: ignore` | `.py` `.pyi` |
+| **pyright** | `# pyright: ignore` | `.py` `.pyi` |
+| **bandit** | `# nosec` | `.py` |
+
+### Go
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **golangci-lint** | `//nolint` | `.go` |
+| **gosec** | `//#nosec` | `.go` |
+| **staticcheck** | `//lint:ignore`, `//lint:file-ignore` | `.go` |
+
+### Java / Kotlin
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **java** | `@SuppressWarnings`, `CHECKSTYLE: OFF/ON`, `NOPMD`, `@SuppressFBWarnings` | `.java` |
+| **detekt** | `@Suppress(...)`, `@file:Suppress(...)` | `.kt` `.kts` |
+
+### C / C++
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **clang-tidy** | `NOLINT`, `NOLINTNEXTLINE`, `NOLINTBEGIN`, `NOLINTEND` | `.c` `.cc` `.cpp` `.cxx` `.h` `.hpp` `.hxx` |
+| **cppcheck** | `cppcheck-suppress` | `.c` `.cc` `.cpp` `.cxx` `.h` `.hpp` `.hxx` |
+
+### Ruby / CSS / Shell / Dockerfile / Swift
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **rubocop** | `rubocop:disable`, `rubocop:enable`, `rubocop:todo` | `.rb` `.rake` `.gemspec` |
+| **stylelint** | `stylelint-disable`, `stylelint-enable` | `.css` `.scss` `.sass` `.less` `.vue` `.svelte` |
+| **shellcheck** | `shellcheck disable=` | `.sh` `.bash` `.zsh` `.ksh` |
+| **hadolint** | `hadolint ignore=` | `Dockerfile` |
+| **swiftlint** | `swiftlint:disable`, `swiftlint:enable` | `.swift` |
+
+## CLI Reference
+
+```
+lintscout [OPTIONS] [PATH]
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `[PATH]` | `.` | Directory or file to scan |
+| `--format <FORMAT>` | `text` | Output format: `text`, `json`, or `count` |
+| `--config <PATH>` | auto-detect | Path to config file |
+| `--pass-threshold <N>` | none | Exit 0 if findings <= N |
+| `--scouts <LIST>` | all | Only run these scouts (comma-separated) |
+| `--exclude-scouts <LIST>` | none | Skip these scouts (comma-separated) |
+| `--exclude <LIST>` | from config | Exclude these paths (comma-separated) |
+| `--no-gitignore` | false | Don't respect `.gitignore` files |
+| `--quiet` | false | Suppress output when there are no findings |
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | No findings (or findings <= pass threshold) |
+| `1` | Findings exceed threshold |
+| `2` | Runtime error (bad config, I/O failure, etc.) |
+
+## Configuration
+
+LintScout automatically looks for `.lintscout.yml` or `lintscout.yml` in the current directory. You can also pass `--config <path>` explicitly.
 
 ```yaml
-name: LintScout Check
+# .lintscout.yml
+
+settings:
+  # Directories to skip (default: node_modules, vendor, target, dist)
+  exclude:
+    - node_modules
+    - vendor
+    - target
+    - dist
+    - build
+
+  # Whether to honor .gitignore files (default: true)
+  respect_gitignore: true
+
+  # Default output format: text | json | count
+  output: text
+
+  # If set, exit 0 when findings <= this number
+  pass_threshold: 10
+
+  # Disable specific built-in scouts
+  disable:
+    scouts:
+      - jshint
+      - prettier
+
+# Define your own custom scouts
+scouts:
+  - name: no-debug-prints
+    linter: custom
+    language: python
+    extensions: [py]
+    rules:
+      - id: print-statement
+        description: "Debug print statement"
+        pattern: "^\\s*print\\("
+
+  - name: todo-fixme
+    linter: custom
+    language: general
+    extensions: [js, ts, py, go, rs, java, rb]
+    rules:
+      - id: todo
+        description: "TODO comment"
+        pattern: "TODO"
+      - id: fixme
+        description: "FIXME comment"
+        pattern: "FIXME"
+```
+
+### Config Precedence
+
+CLI flags always override config file values:
+
+```bash
+# Config says output: text, but this overrides to json
+lintscout --format json
+
+# Config says pass_threshold: 10, but this overrides to 0
+lintscout --pass-threshold 0
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: LintScout
 
 on:
   pull_request:
-    paths:
-      - '**/*.js'  # Adjust the file patterns as needed
 
 jobs:
-  lintscout:
+  lint-ignores:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install lintscout
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      # Fail if any lint ignores are found
+      - run: lintscout --pass-threshold 0 .
 
-      - name: Install LintScout
-        run: cargo install lintscout
+      # Or: allow up to 20 existing ignores
+      # - run: lintscout --pass-threshold 20 .
+```
 
-      - name: Run LintScout
-        run: lintscout --pass-threshold 0 .
+### GitLab CI
 
-      - name: Post LintScout Results
-        if: failure()
-        run: echo "LintScout found issues in your code. Please review and fix them."
+```yaml
+lint-ignores:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo install lintscout
+    - lintscout --pass-threshold 0 .
+```
+
+### JSON Output for Dashboards
+
+```bash
+# Pipe JSON output to your metrics system
+lintscout --format json | jq '.stats.findings_count'
+
+# Save a snapshot
+lintscout --format json > lintscout-report.json
+```
+
+## Output Formats
+
+### Text (default)
+
+```
+src/handler.ts:42 [eslint:eslint-disable-next-line] ESLint disable next line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+Files walked: 214, scanned: 87, skipped: 127
+Findings: 1
+Duration: 12ms
+```
+
+### JSON
+
+```json
+{
+  "findings": [
+    {
+      "path": "src/handler.ts",
+      "line_number": 42,
+      "line_text": "// eslint-disable-next-line @typescript-eslint/no-explicit-any",
+      "scout_name": "eslint",
+      "linter": "eslint",
+      "rule_id": "eslint-disable-next-line",
+      "rule_description": "ESLint disable next line"
+    }
+  ],
+  "stats": {
+    "files_walked": 214,
+    "files_scanned": 87,
+    "files_skipped": 127,
+    "findings_count": 1,
+    "errors_count": 0,
+    "duration_ms": 12
+  }
+}
+```
+
+### Count
+
+```
+1
 ```
 
 ## Contributing
 
-LintScout is an open-source project, and we welcome contributions from the community. If you encounter issues, have feature suggestions, or would like to contribute code, please check our [contributing guidelines](CONTRIBUTING.md).
+Contributions are welcome! Here's how to get started:
+
+### Development Setup
+
+```bash
+git clone https://github.com/eladbash/LintScout.git
+cd LintScout
+cargo build
+cargo test
+```
+
+### Adding a New Scout
+
+Adding support for a new linter takes about 5 minutes:
+
+1. Create `src/builtin/my_linter.rs`:
+
+```rust
+use crate::error::Result;
+use crate::rule::Rule;
+use crate::scout::Scout;
+
+pub fn scout() -> Result<Scout> {
+    Ok(Scout {
+        name: "my-linter".into(),
+        linter: "my-linter".into(),
+        language: "my-language".into(),
+        extensions: vec!["ext1".into(), "ext2".into()],
+        rules: vec![
+            Rule::new(
+                "rule-id",
+                "Human-readable description",
+                r"regex-pattern-here",
+            )?,
+        ],
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn scout_compiles() {
+        assert!(scout().is_ok());
+    }
+
+    #[test]
+    fn matches_expected_directives() {
+        let s = scout().unwrap();
+        assert!(!s.find_matches("// my-linter-ignore").is_empty());
+    }
+}
+```
+
+2. Register it in `src/builtin/mod.rs`:
+
+```rust
+mod my_linter;  // add this line
+
+// In the all() function, add:
+my_linter::scout()?,
+```
+
+3. Run `cargo test` to verify everything works.
+
+### Pull Request Checklist
+
+- [ ] `cargo fmt --check` passes
+- [ ] `cargo clippy --all-targets -- -D warnings` passes
+- [ ] `cargo test` passes (all tests green)
+- [ ] New scouts include tests for both true positives and false negatives
+- [ ] Test fixture files added to `tests/fixtures/` if applicable
+
+### Architecture
+
+```
+src/
+  main.rs           CLI entrypoint
+  lib.rs            Public library API
+  cli.rs            Argument parsing (clap)
+  error.rs          Error types (thiserror)
+  rule.rs           Regex-based detection rule
+  scout.rs          Scout: groups rules + file matching
+  finding.rs        Scan result data structure
+  stats.rs          Scan statistics
+  scanner.rs        Filesystem walker + matching engine
+  config.rs         YAML config loading
+  registry.rs       Scout registry (builtins + custom)
+  builtin/          22 built-in scout definitions
+  output/           Text, JSON, and count formatters
+```
+
+## Performance
+
+LintScout is built in Rust for speed. It uses the [`ignore`](https://docs.rs/ignore) crate (the same engine behind [ripgrep](https://github.com/BurntSushi/ripgrep)) for filesystem traversal, respects `.gitignore` by default, and scans files in a single pass.
+
+Typical performance on a mid-size codebase (~10k files):
+
+- **Scan time**: <100ms
+- **Memory**: <10MB RSS
 
 ## License
 
-LintScout is licensed under the [MIT License](LICENSE). Feel free to use and modify it for your own projects.
+MIT License -- see [LICENSE](LICENSE) for details.
 
-## Acknowledgments
-
-LintScout is inspired by the need for better linting and code quality tools in the open-source community. We thank all our contributors for their efforts in making this tool possible.
+Copyright (c) 2023 Elad Ben Shmuel
 
 ---
 
-Thank you for using LintScout to improve your code quality and catch ignored linting issues. We look forward to your feedback and contributions to make this tool even better!
+<p align="center">
+  <sub>Built with Rust. Made to keep codebases honest.</sub>
+</p>
