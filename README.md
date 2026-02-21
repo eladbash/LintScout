@@ -263,7 +263,7 @@ lint-ignores:
 
 ```bash
 # Pipe JSON output to your metrics system
-lintscout --format json | jq '.stats.findings_count'
+lintscout --format json | jdx -Q '.stats.findings_count' --non-interactive
 
 # Save a snapshot
 lintscout --format json > lintscout-report.json

@@ -232,7 +232,7 @@
         </div>
         <div class="example">
           <h4>JSON for dashboards</h4>
-          <div class="code-block"><code>lintscout --format json | jq '.stats.findings_count'</code></div>
+          <div class="code-block"><code>lintscout --format json | jdx -Q '.stats.findings_count' --non-interactive</code></div>
         </div>
         <div class="example">
           <h4>CI gate</h4>
