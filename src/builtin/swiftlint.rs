@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "swiftlint-directive",
             "SwiftLint disable/enable directive",
             r"swiftlint:(disable|enable)",
-        )?],
+        )?
+        .with_capture(r"swiftlint:(?:disable|enable)\s+(.+)")?],
     })
 }
 

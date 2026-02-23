@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "shellcheck-disable",
             "ShellCheck disable directive",
             r"shellcheck\s+disable=",
-        )?],
+        )?
+        .with_capture(r"shellcheck\s+disable=(.+)")?],
     })
 }
 

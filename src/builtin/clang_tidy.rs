@@ -17,17 +17,20 @@ pub fn scout() -> Result<Scout> {
             "hxx".into(),
         ],
         rules: vec![
-            Rule::new("nolint", "clang-tidy NOLINT directive", r"NOLINT(\(|$|\s)")?,
+            Rule::new("nolint", "clang-tidy NOLINT directive", r"NOLINT(\(|$|\s)")?
+                .with_capture(r"NOLINT\(([^)]+)\)")?,
             Rule::new(
                 "nolintnextline",
                 "clang-tidy NOLINTNEXTLINE directive",
                 r"NOLINTNEXTLINE",
-            )?,
+            )?
+            .with_capture(r"NOLINTNEXTLINE\(([^)]+)\)")?,
             Rule::new(
                 "nolintbegin",
                 "clang-tidy NOLINTBEGIN directive",
                 r"NOLINTBEGIN",
-            )?,
+            )?
+            .with_capture(r"NOLINTBEGIN\(([^)]+)\)")?,
             Rule::new("nolintend", "clang-tidy NOLINTEND directive", r"NOLINTEND")?,
         ],
     })

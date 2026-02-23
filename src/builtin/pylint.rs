@@ -13,12 +13,14 @@ pub fn scout() -> Result<Scout> {
                 "pylint-disable",
                 "Pylint disable directive",
                 r"pylint:\s*disable",
-            )?,
+            )?
+            .with_capture(r"pylint:\s*disable=(.+)")?,
             Rule::new(
                 "pylint-disable-next",
                 "Pylint disable-next directive",
                 r"pylint:\s*disable-next",
-            )?,
+            )?
+            .with_capture(r"pylint:\s*disable-next=(.+)")?,
         ],
     })
 }

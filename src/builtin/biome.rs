@@ -15,11 +15,10 @@ pub fn scout() -> Result<Scout> {
             "json".into(),
             "jsonc".into(),
         ],
-        rules: vec![Rule::new(
-            "biome-ignore",
-            "Biome ignore directive",
-            r"biome-ignore",
-        )?],
+        rules: vec![
+            Rule::new("biome-ignore", "Biome ignore directive", r"biome-ignore")?
+                .with_capture(r"biome-ignore\s+([^:]+)")?,
+        ],
     })
 }
 

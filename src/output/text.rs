@@ -7,13 +7,20 @@ pub fn format(result: &ScanResult) -> String {
         out.push_str("No lint ignore directives found.\n");
     } else {
         for f in &result.findings {
+            let suppressed = match &f.suppressed_rules {
+                Some(rules) if !rules.is_empty() => {
+                    format!(" (suppresses: {})", rules.join(", "))
+                }
+                _ => String::new(),
+            };
             out.push_str(&format!(
-                "{}:{} [{}:{}] {}\n    {}\n",
+                "{}:{} [{}:{}] {}{}\n    {}\n",
                 f.path,
                 f.line_number,
                 f.linter,
                 f.rule_id,
                 f.rule_description,
+                suppressed,
                 f.line_text.trim()
             ));
         }

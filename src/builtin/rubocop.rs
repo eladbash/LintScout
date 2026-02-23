@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "rubocop-directive",
             "RuboCop disable/enable/todo directive",
             r"rubocop:(disable|enable|todo)",
-        )?],
+        )?
+        .with_capture(r"rubocop:(?:disable|enable|todo)\s+(.+)")?],
     })
 }
 

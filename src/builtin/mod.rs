@@ -1,6 +1,7 @@
 mod bandit;
 mod biome;
 mod clang_tidy;
+mod clippy;
 mod cppcheck;
 mod detekt;
 mod eslint;
@@ -10,11 +11,15 @@ mod gosec;
 mod hadolint;
 mod java;
 mod jshint;
+mod ktlint;
 mod mypy;
+mod oxlint;
+mod phpstan;
 mod prettier;
 mod pylint;
 mod pyright;
 mod rubocop;
+mod ruff;
 mod shellcheck;
 mod staticcheck;
 mod stylelint;
@@ -48,6 +53,11 @@ pub fn all() -> Result<Vec<Scout>> {
         shellcheck::scout()?,
         hadolint::scout()?,
         swiftlint::scout()?,
+        ruff::scout()?,
+        oxlint::scout()?,
+        clippy::scout()?,
+        phpstan::scout()?,
+        ktlint::scout()?,
     ])
 }
 
@@ -58,7 +68,7 @@ mod tests {
     #[test]
     fn all_builtin_patterns_compile() {
         let scouts = all().expect("all builtin scouts should compile");
-        assert_eq!(scouts.len(), 22);
+        assert_eq!(scouts.len(), 27);
         for scout in &scouts {
             assert!(!scout.name.is_empty());
             assert!(!scout.rules.is_empty());

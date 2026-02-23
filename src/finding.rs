@@ -9,4 +9,6 @@ pub struct Finding {
     pub linter: String,
     pub rule_id: String,
     pub rule_description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suppressed_rules: Option<Vec<String>>,
 }

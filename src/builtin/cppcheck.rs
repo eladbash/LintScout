@@ -20,7 +20,8 @@ pub fn scout() -> Result<Scout> {
             "cppcheck-suppress",
             "cppcheck suppress directive",
             r"cppcheck-suppress",
-        )?],
+        )?
+        .with_capture(r"cppcheck-suppress\s+(.+)")?],
     })
 }
 

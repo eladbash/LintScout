@@ -20,7 +20,7 @@ These one-line comments silently bypass your linters, and over time they pile up
 ```
 $ lintscout src/
 
-src/api/handler.ts:42 [eslint:eslint-disable-next-line] ESLint disable next line
+src/api/handler.ts:42 [eslint:eslint-disable-next-line] ESLint disable next line (suppresses: @typescript-eslint/no-explicit-any)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 src/api/handler.ts:88 [typescript:ts-ignore] TypeScript ignore directive
     // @ts-ignore
@@ -42,7 +42,7 @@ LintScout helps you:
 
 - **Audit** -- see every suppressed warning across your entire codebase in seconds
 - **Gate CI** -- fail builds when ignore directives exceed a threshold you control
-- **Track trends** -- use JSON output to feed dashboards and track tech debt over time
+- **Track trends** -- use JSON or SARIF output to feed dashboards and track tech debt over time
 - **Onboard** -- give new team members instant visibility into where shortcuts were taken
 
 ## Quick Start
@@ -82,12 +82,13 @@ lintscout --scouts pylint,flake8,mypy,bandit
 
 ## Supported Linters
 
-LintScout ships with **22 built-in scouts** covering **12 language ecosystems**:
+LintScout ships with **27 built-in scouts** covering **14 language ecosystems**:
 
 ### JavaScript / TypeScript
 | Scout | Detects | File types |
 |-------|---------|------------|
 | **eslint** | `eslint-disable`, `eslint-disable-next-line`, `eslint-disable-line`, `eslint-enable` | `.js` `.jsx` `.ts` `.tsx` `.mjs` `.cjs` `.vue` `.svelte` |
+| **oxlint** | `oxlint-disable`, `oxlint-disable-next-line`, `oxlint-disable-line`, `oxlint-enable` | `.js` `.jsx` `.ts` `.tsx` `.mjs` `.cjs` `.vue` `.svelte` |
 | **typescript** | `@ts-ignore`, `@ts-nocheck`, `@ts-expect-error` | `.ts` `.tsx` |
 | **biome** | `biome-ignore` | `.js` `.jsx` `.ts` `.tsx` `.json` `.jsonc` |
 | **prettier** | `prettier-ignore` | `.js` `.jsx` `.ts` `.tsx` `.css` `.scss` `.html` `.md` `.json` `.yaml` `.yml` `.vue` `.svelte` |
@@ -98,6 +99,7 @@ LintScout ships with **22 built-in scouts** covering **12 language ecosystems**:
 |-------|---------|------------|
 | **pylint** | `pylint: disable`, `pylint: disable-next` | `.py` |
 | **flake8** | `# noqa` | `.py` |
+| **ruff** | `# ruff: noqa` | `.py` |
 | **mypy** | `# type: ignore` | `.py` `.pyi` |
 | **pyright** | `# pyright: ignore` | `.py` `.pyi` |
 | **bandit** | `# nosec` | `.py` |
@@ -114,12 +116,23 @@ LintScout ships with **22 built-in scouts** covering **12 language ecosystems**:
 |-------|---------|------------|
 | **java** | `@SuppressWarnings`, `CHECKSTYLE: OFF/ON`, `NOPMD`, `@SuppressFBWarnings` | `.java` |
 | **detekt** | `@Suppress(...)`, `@file:Suppress(...)` | `.kt` `.kts` |
+| **ktlint** | `ktlint-disable`, `@Suppress("ktlint:...")` | `.kt` `.kts` |
+
+### Rust
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **clippy** | `#[allow(clippy::...)]`, `#![allow(clippy::...)]` | `.rs` |
 
 ### C / C++
 | Scout | Detects | File types |
 |-------|---------|------------|
 | **clang-tidy** | `NOLINT`, `NOLINTNEXTLINE`, `NOLINTBEGIN`, `NOLINTEND` | `.c` `.cc` `.cpp` `.cxx` `.h` `.hpp` `.hxx` |
 | **cppcheck** | `cppcheck-suppress` | `.c` `.cc` `.cpp` `.cxx` `.h` `.hpp` `.hxx` |
+
+### PHP
+| Scout | Detects | File types |
+|-------|---------|------------|
+| **phpstan** | `@phpstan-ignore-next-line`, `@phpstan-ignore-line`, `@phpstan-ignore` | `.php` |
 
 ### Ruby / CSS / Shell / Dockerfile / Swift
 | Scout | Detects | File types |
@@ -139,7 +152,7 @@ lintscout [OPTIONS] [PATH]
 | Option | Default | Description |
 |--------|---------|-------------|
 | `[PATH]` | `.` | Directory or file to scan |
-| `--format <FORMAT>` | `text` | Output format: `text`, `json`, or `count` |
+| `--format <FORMAT>` | `text` | Output format: `text`, `json`, `count`, or `sarif` |
 | `--config <PATH>` | auto-detect | Path to config file |
 | `--pass-threshold <N>` | none | Exit 0 if findings <= N |
 | `--scouts <LIST>` | all | Only run these scouts (comma-separated) |
@@ -175,7 +188,7 @@ settings:
   # Whether to honor .gitignore files (default: true)
   respect_gitignore: true
 
-  # Default output format: text | json | count
+  # Default output format: text | json | count | sarif
   output: text
 
   # If set, exit 0 when findings <= this number
@@ -209,6 +222,17 @@ scouts:
       - id: fixme
         description: "FIXME comment"
         pattern: "FIXME"
+
+  - name: custom-noqa
+    linter: custom
+    language: python
+    extensions: [py]
+    rules:
+      - id: custom-ignore
+        description: "Custom ignore directive"
+        pattern: "# custom-ignore"
+        # Optional: extract which rules are suppressed
+        capture_pattern: "# custom-ignore:\\s*(.+)"
 ```
 
 ### Config Precedence
@@ -274,13 +298,15 @@ lintscout --format json > lintscout-report.json
 ### Text (default)
 
 ```
-src/handler.ts:42 [eslint:eslint-disable-next-line] ESLint disable next line
+src/handler.ts:42 [eslint:eslint-disable-next-line] ESLint disable next line (suppresses: @typescript-eslint/no-explicit-any)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 Files walked: 214, scanned: 87, skipped: 127
 Findings: 1
 Duration: 12ms
 ```
+
+When a directive specifies which rules it suppresses, LintScout extracts and displays them in the `(suppresses: ...)` annotation.
 
 ### JSON
 
@@ -294,7 +320,8 @@ Duration: 12ms
       "scout_name": "eslint",
       "linter": "eslint",
       "rule_id": "eslint-disable-next-line",
-      "rule_description": "ESLint disable next line"
+      "rule_description": "ESLint disable next line",
+      "suppressed_rules": ["@typescript-eslint/no-explicit-any"]
     }
   ],
   "stats": {
@@ -305,6 +332,33 @@ Duration: 12ms
     "errors_count": 0,
     "duration_ms": 12
   }
+}
+```
+
+The `suppressed_rules` field is only present when the directive specifies which rules it suppresses. Bare directives like `# noqa` or `// @ts-ignore` omit it.
+
+### SARIF
+
+[SARIF v2.1.0](https://sarifweb.azurewebsites.net/) output for integration with GitHub Code Scanning, VS Code SARIF Viewer, and other SARIF-compatible tools:
+
+```bash
+lintscout --format sarif > report.sarif
+```
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [{
+    "tool": {
+      "driver": {
+        "name": "lintscout",
+        "version": "0.1.0",
+        "rules": [{ "id": "eslint/eslint-disable-next-line", "shortDescription": { "text": "ESLint disable next line" } }]
+      }
+    },
+    "results": [{ "ruleId": "eslint/eslint-disable-next-line", "ruleIndex": 0, "message": { "text": "..." }, "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "src/handler.ts" }, "region": { "startLine": 42 } } }] }]
+  }]
 }
 ```
 
@@ -349,7 +403,9 @@ pub fn scout() -> Result<Scout> {
                 "rule-id",
                 "Human-readable description",
                 r"regex-pattern-here",
-            )?,
+            )?
+            // Optional: extract suppressed rule names from the directive
+            .with_capture(r"my-linter-ignore\s+(.+)")?,
         ],
     })
 }
@@ -405,13 +461,13 @@ src/
   scanner.rs        Filesystem walker + matching engine
   config.rs         YAML config loading
   registry.rs       Scout registry (builtins + custom)
-  builtin/          22 built-in scout definitions
-  output/           Text, JSON, and count formatters
+  builtin/          27 built-in scout definitions
+  output/           Text, JSON, count, and SARIF formatters
 ```
 
 ## Performance
 
-LintScout is built in Rust for speed. It uses the [`ignore`](https://docs.rs/ignore) crate (the same engine behind [ripgrep](https://github.com/BurntSushi/ripgrep)) for filesystem traversal, respects `.gitignore` by default, and scans files in a single pass.
+LintScout is built in Rust for speed. It uses the [`ignore`](https://docs.rs/ignore) crate (the same engine behind [ripgrep](https://github.com/BurntSushi/ripgrep)) for filesystem traversal, [`rayon`](https://docs.rs/rayon) for parallel file processing, and respects `.gitignore` by default.
 
 Typical performance on a mid-size codebase (~10k files):
 

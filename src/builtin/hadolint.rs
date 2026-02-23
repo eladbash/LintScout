@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "hadolint-ignore",
             "Hadolint ignore directive",
             r"hadolint\s+ignore=",
-        )?],
+        )?
+        .with_capture(r"hadolint\s+ignore=(.+)")?],
     })
 }
 

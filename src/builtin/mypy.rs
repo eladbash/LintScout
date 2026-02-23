@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "type-ignore",
             "Mypy type ignore directive",
             r"#\s*type:\s*ignore",
-        )?],
+        )?
+        .with_capture(r"#\s*type:\s*ignore\[([^\]]+)\]")?],
     })
 }
 

@@ -8,11 +8,10 @@ pub fn scout() -> Result<Scout> {
         linter: "golangci-lint".into(),
         language: "go".into(),
         extensions: vec!["go".into()],
-        rules: vec![Rule::new(
-            "nolint",
-            "golangci-lint nolint directive",
-            r"//\s*nolint",
-        )?],
+        rules: vec![
+            Rule::new("nolint", "golangci-lint nolint directive", r"//\s*nolint")?
+                .with_capture(r"//\s*nolint:([^\s]+)")?,
+        ],
     })
 }
 

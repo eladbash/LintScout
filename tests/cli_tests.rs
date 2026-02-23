@@ -139,3 +139,23 @@ fn quiet_mode_suppresses_clean_output() {
         .success()
         .stdout(predicate::str::is_empty());
 }
+
+#[test]
+fn scan_fixtures_sarif_output() {
+    let output = cmd()
+        .args(["tests/fixtures", "--format", "sarif"])
+        .assert()
+        .failure()
+        .code(1)
+        .get_output()
+        .stdout
+        .clone();
+    let json: serde_json::Value = serde_json::from_slice(&output).expect("valid SARIF JSON");
+    assert_eq!(json["version"], "2.1.0");
+    assert_eq!(json["runs"][0]["tool"]["driver"]["name"], "lintscout");
+    assert!(!json["runs"][0]["results"].as_array().unwrap().is_empty());
+    assert!(!json["runs"][0]["tool"]["driver"]["rules"]
+        .as_array()
+        .unwrap()
+        .is_empty());
+}

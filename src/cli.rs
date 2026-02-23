@@ -12,7 +12,7 @@ pub struct Cli {
     #[arg(default_value = ".")]
     pub path: PathBuf,
 
-    /// Output format: text, json, or count
+    /// Output format: text, json, count, or sarif
     #[arg(long, default_value = "text")]
     pub format: String,
 

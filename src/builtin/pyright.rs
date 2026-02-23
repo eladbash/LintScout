@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "pyright-ignore",
             "Pyright ignore directive",
             r"#\s*pyright:\s*ignore",
-        )?],
+        )?
+        .with_capture(r"#\s*pyright:\s*ignore\[([^\]]+)\]")?],
     })
 }
 

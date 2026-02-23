@@ -62,6 +62,7 @@ pub struct CustomRuleConfig {
     pub id: String,
     pub description: String,
     pub pattern: String,
+    pub capture_pattern: Option<String>,
 }
 
 fn default_excludes() -> Vec<String> {
@@ -142,7 +143,11 @@ impl Config {
         for cfg in &self.scouts {
             let mut rules = Vec::new();
             for r in &cfg.rules {
-                rules.push(Rule::new(&r.id, &r.description, &r.pattern)?);
+                let mut rule = Rule::new(&r.id, &r.description, &r.pattern)?;
+                if let Some(ref cap) = r.capture_pattern {
+                    rule = rule.with_capture(cap)?;
+                }
+                rules.push(rule);
             }
             scouts.push(Scout {
                 name: cfg.name.clone(),

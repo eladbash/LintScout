@@ -22,22 +22,26 @@ pub fn scout() -> Result<Scout> {
                 "eslint-disable",
                 "ESLint disable block directive",
                 r"eslint-disable(?:\s|$)",
-            )?,
+            )?
+            .with_capture(r"eslint-disable\s+([^*]+)")?,
             Rule::new(
                 "eslint-disable-next-line",
                 "ESLint disable next line",
                 r"eslint-disable-next-line",
-            )?,
+            )?
+            .with_capture(r"eslint-disable-next-line\s+([^*]+)")?,
             Rule::new(
                 "eslint-disable-line",
                 "ESLint disable current line",
                 r"eslint-disable-line",
-            )?,
+            )?
+            .with_capture(r"eslint-disable-line\s+([^*]+)")?,
             Rule::new(
                 "eslint-enable",
                 "ESLint re-enable directive",
                 r"eslint-enable",
-            )?,
+            )?
+            .with_capture(r"eslint-enable\s+([^*]+)")?,
         ],
     })
 }

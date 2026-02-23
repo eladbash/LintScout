@@ -13,7 +13,8 @@ pub fn scout() -> Result<Scout> {
                 "suppress-warnings",
                 "Java SuppressWarnings annotation",
                 r"@SuppressWarnings",
-            )?,
+            )?
+            .with_capture(r#"@SuppressWarnings\(\{?"([^"]*)"#)?,
             Rule::new(
                 "checkstyle-off",
                 "Checkstyle toggle directive",
@@ -24,7 +25,8 @@ pub fn scout() -> Result<Scout> {
                 "suppress-fb-warnings",
                 "FindBugs/SpotBugs suppression",
                 r"@SuppressFBWarnings",
-            )?,
+            )?
+            .with_capture(r#"@SuppressFBWarnings\("([^"]*)""#)?,
         ],
     })
 }

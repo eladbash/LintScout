@@ -12,7 +12,8 @@ pub fn scout() -> Result<Scout> {
             "lint-ignore",
             "staticcheck file-ignore or ignore directive",
             r"//lint:(file-)?ignore",
-        )?],
+        )?
+        .with_capture(r"//lint:(?:file-)?ignore\s+(\S+)")?],
     })
 }
 

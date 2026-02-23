@@ -8,7 +8,8 @@ pub fn scout() -> Result<Scout> {
         linter: "flake8".into(),
         language: "python".into(),
         extensions: vec!["py".into()],
-        rules: vec![Rule::new("noqa", "Flake8 noqa directive", r"#\s*noqa")?],
+        rules: vec![Rule::new("noqa", "Flake8 noqa directive", r"#\s*noqa")?
+            .with_capture(r"#\s*noqa:\s*(.+)")?],
     })
 }
 

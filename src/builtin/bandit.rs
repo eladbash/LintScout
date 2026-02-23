@@ -8,7 +8,8 @@ pub fn scout() -> Result<Scout> {
         linter: "bandit".into(),
         language: "python".into(),
         extensions: vec!["py".into()],
-        rules: vec![Rule::new("nosec", "Bandit nosec directive", r"#\s*nosec")?],
+        rules: vec![Rule::new("nosec", "Bandit nosec directive", r"#\s*nosec")?
+            .with_capture(r"#\s*nosec\s+(.+)")?],
     })
 }
 

@@ -8,7 +8,8 @@ pub fn scout() -> Result<Scout> {
         linter: "gosec".into(),
         language: "go".into(),
         extensions: vec!["go".into()],
-        rules: vec![Rule::new("nosec", "gosec nosec directive", r"//\s*#nosec")?],
+        rules: vec![Rule::new("nosec", "gosec nosec directive", r"//\s*#nosec")?
+            .with_capture(r"//\s*#nosec\s+(.+)")?],
     })
 }
 

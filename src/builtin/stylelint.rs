@@ -20,12 +20,14 @@ pub fn scout() -> Result<Scout> {
                 "stylelint-disable",
                 "Stylelint disable directive",
                 r"stylelint-disable",
-            )?,
+            )?
+            .with_capture(r"stylelint-disable\s+([^*]+)")?,
             Rule::new(
                 "stylelint-enable",
                 "Stylelint re-enable directive",
                 r"stylelint-enable",
-            )?,
+            )?
+            .with_capture(r"stylelint-enable\s+([^*]+)")?,
         ],
     })
 }

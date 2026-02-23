@@ -13,12 +13,14 @@ pub fn scout() -> Result<Scout> {
                 "suppress",
                 "Kotlin/Detekt Suppress annotation",
                 r"@Suppress\(",
-            )?,
+            )?
+            .with_capture(r#"@Suppress\("([^"]*)"#)?,
             Rule::new(
                 "file-suppress",
                 "Kotlin/Detekt file-level Suppress",
                 r"@file:Suppress",
-            )?,
+            )?
+            .with_capture(r#"@file:Suppress\("([^"]*)"#)?,
         ],
     })
 }
